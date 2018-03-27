@@ -31,6 +31,7 @@ net = caffe.Net(caffe_root + prototxtDir,
 
 # use transformer to change the img into a appropriate form as the network input
 # and the following code is to initialize the transformer
+# net.blobs['data'].data.shape is determined by the data layer of prototxt
 transformer = caffe.io.Transformer({'data': net.blobs['data'].data.shape})
 # python load img as H×W×K，we need it to be K×H×W
 transformer.set_transpose('data', (2,0,1))
@@ -39,6 +40,7 @@ mean[:,:,:] = MEANVALUE
 # mean pixel
 transformer.set_mean('data', mean) 
 # the reference model operates on images in [0,255] range instead of [0,1]
+# and when use caffe.io.load_image(imageDir), the pixel value of im is in range of [0,1]
 transformer.set_raw_scale('data', 255)  
 # the reference model has channels in BGR order instead of RGB
 transformer.set_channel_swap('data', (2,1,0))  
@@ -46,7 +48,7 @@ transformer.set_channel_swap('data', (2,1,0))
 # resize the data with reshape
 # TO BE MODIFIED!!!
 im = caffe.io.load_image(imageDir)
-# reshape the inout of the network as it in the deploy.prototxt
+# reshape the input of the network, but if the data layer of the prototxt file is correct, there is no need to do this step
 net.blobs['data'].reshape(1,3,IMGHEIGHT,IMGWIDTH)
 # use transformer to deal witn the img 
 net.blobs['data'].data[...] = transformer.preprocess('data', im)
